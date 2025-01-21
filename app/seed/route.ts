@@ -4,22 +4,28 @@ import { db } from '@vercel/postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
 async function seedUsers() {
-  const client = await db.connect();
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('No database connection string found. Set POSTGRES_URL or DATABASE_URL.');
+  }
+
   try {
     console.log('Creating users table...');
-    await client.sql`CREATE TABLE IF NOT EXISTS users (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
-    );`;
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      );
+    `;
     console.log('Users table created.');
 
     console.log('Inserting users...');
     const insertedUsers = await Promise.all(
       users.map(async (user) => {
         const hashedPassword = await bcrypt.hash(user.password, 10);
-        return client.sql`
+        return db.sql`
           INSERT INTO users (id, name, email, password)
           VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
           ON CONFLICT (id) DO NOTHING;
@@ -29,28 +35,32 @@ async function seedUsers() {
     console.log('Users inserted:', insertedUsers.length);
   } catch (error) {
     console.error('Error seeding users:', error);
-    throw error; // Rethrow to propagate to the main GET handler
-  } finally {
-    client.release(); // Always release the client
+    throw error;
   }
 }
 
 async function seedCustomers() {
-  const client = await db.connect();
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('No database connection string found. Set POSTGRES_URL or DATABASE_URL.');
+  }
+
   try {
     console.log('Creating customers table...');
-    await client.sql`CREATE TABLE IF NOT EXISTS customers (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      image_url TEXT NOT NULL
-    );`;
+    await db.sql`
+      CREATE TABLE IF NOT EXISTS customers (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        image_url TEXT NOT NULL
+      );
+    `;
     console.log('Customers table created.');
 
     console.log('Inserting customers...');
     const insertedCustomers = await Promise.all(
       customers.map((customer) =>
-        client.sql`
+        db.sql`
           INSERT INTO customers (id, name, email, image_url)
           VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
           ON CONFLICT (id) DO NOTHING;
@@ -60,9 +70,7 @@ async function seedCustomers() {
     console.log('Customers inserted:', insertedCustomers.length);
   } catch (error) {
     console.error('Error seeding customers:', error);
-    throw error; // Rethrow to propagate to the main GET handler
-  } finally {
-    client.release(); // Always release the client
+    throw error;
   }
 }
 
@@ -89,10 +97,3 @@ export async function GET() {
     }
   }
 }
-
-
-
-// Optional: Export POST or other methods if required
-// export async function POST() {
-//   return NextResponse.json({ message: 'POST not implemented yet' }, { status: 501 });
-// }

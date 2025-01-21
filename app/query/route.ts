@@ -3,6 +3,13 @@ import { NextResponse } from 'next/server';
 
 async function listInvoices() {
   try {
+    // Ensure a connection string is available
+    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('No database connection string found. Set POSTGRES_URL or DATABASE_URL.');
+    }
+
+    // Use the `db.sql` to run the query
     const data = await db.sql`
       SELECT invoices.amount, customers.name
       FROM invoices
