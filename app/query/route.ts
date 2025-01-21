@@ -2,9 +2,8 @@ import { db } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
 async function listInvoices() {
-  const client = await db.connect(); // Move client initialization here
   try {
-    const data = await client.sql`
+    const data = await db.sql`
       SELECT invoices.amount, customers.name
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
@@ -14,8 +13,6 @@ async function listInvoices() {
   } catch (error) {
     console.error('Error executing query:', error);
     throw error;
-  } finally {
-    client.release(); // Ensure the connection is released
   }
 }
 
