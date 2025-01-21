@@ -1,11 +1,8 @@
-
-
 import { db } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
-const client = await db.connect();
-
 async function listInvoices() {
+  const client = await db.connect(); // Move client initialization here
   try {
     const data = await client.sql`
       SELECT invoices.amount, customers.name
@@ -17,9 +14,10 @@ async function listInvoices() {
   } catch (error) {
     console.error('Error executing query:', error);
     throw error;
+  } finally {
+    client.release(); // Ensure the connection is released
   }
 }
-
 
 export async function GET() {
   try {
@@ -30,7 +28,6 @@ export async function GET() {
     // Return the invoice data as JSON
     return NextResponse.json({ invoices });
   } catch (error) {
-    // Properly handle and narrow down the error type
     if (error instanceof Error) {
       console.error('Error handling query:', error.message);
       return NextResponse.json({ error: 'Query failed', details: error.message }, { status: 500 });
@@ -40,4 +37,3 @@ export async function GET() {
     }
   }
 }
-
