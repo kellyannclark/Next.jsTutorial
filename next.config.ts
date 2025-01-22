@@ -1,14 +1,9 @@
 import type { NextConfig } from 'next';
-
+ 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-module.exports = {
   experimental: {
-    turbo: true, // Enable Turbopack
-  },
+    ppr: 'incremental'
+  }
 };
-
-
+ 
 export default nextConfig;
