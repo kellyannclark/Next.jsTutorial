@@ -11,7 +11,9 @@ import {
   CardsSkeleton,
 } from '@/app/ui/skeletons';
 
- 
+export const metadata = {
+  title: 'Dashboard | Acme Dashboard',
+};
 export default async function Page() {
   const {
     numberOfInvoices,
